@@ -23,7 +23,19 @@ body {
 	.results {
 		color: var(--text-color);
 		font-size: 12px;
-		margin: 12px 5px;
+		margin: 12px 15px;
+		display: inline-block;
+	}
+
+	.restore {
+		color: rgb(45, 0, 243);
+		display: inline-block;
+		cursor: pointer;
+	}
+
+	.hidden {
+		display: inline-block;
+		font-style: italic;
 	}
 
 	header {
@@ -72,18 +84,32 @@ body {
 			height: auto;
 			width: calc(100% - 70px);
 			margin: 15px;
+			border-radius: 5px;
 			display: inline-block;
 			padding: 10px 20px;
 			position: relative;
 			background-color: #fff;
 			box-shadow: 0 2px 6px 1px #e1e5e8;
 
+			.hide {
+				font-size: 12px;
+				font-weight: 400;
+				text-align: right;
+				opacity: 0;
+				cursor: pointer;
+			}
+
 			&:hover {
 				box-shadow: 0 2px 6px 1px #d3d7da;
 			}
 
+			&:hover .hide {
+				opacity: 1;
+				transition: opacity 1s;
+			}
+
 			.title {
-				margin: 15px 0;
+				margin: 2px 0 15px 0;
 				font-size: 16px;
 				font-weight: 400;
 				font-style: normal;
