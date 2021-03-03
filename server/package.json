@@ -2,10 +2,10 @@
 	"name": "@fed-exam/server",
 	"version": "1.0.0",
 	"main": "index.js",
-  "scripts": {
-    "start": "ts-node-dev index.ts",
-    "d": "ts-node index.ts"
-  },
+	"scripts": {
+		"start": "ts-node-dev index.ts",
+		"d": "ts-node index.ts"
+	},
 	"author": "",
 	"license": "ISC",
 	"dependencies": {

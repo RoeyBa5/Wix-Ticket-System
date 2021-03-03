@@ -8,6 +8,7 @@ export type AppState = {
 	search: string;
 	hidden: number;
 	fontSize: string;
+	page: number;
 };
 
 const api = createApiClient();
@@ -17,14 +18,27 @@ export class App extends React.PureComponent<{}, AppState> {
 		search: '',
 		hidden: 0,
 		fontSize: 'nr',
+		page: 1,
 	};
 
 	searchDebounce: any = null;
 
 	async componentDidMount() {
 		this.setState({
-			tickets: await api.getTickets(),
+			tickets: await api.getTickets(this.state.page, this.state.search),
 		});
+	}
+
+	async componentDidUpdate(prevProps: any, prevState: any) {
+		if (
+			prevState.search !== this.state.search ||
+			prevState.page !== this.state.page
+		) {
+			this.setState({
+				tickets: await api.getTickets(this.state.page, this.state.search),
+				hidden: 0,
+			});
+		}
 	}
 
 	handleHide = (id: string) => {
@@ -53,6 +67,25 @@ export class App extends React.PureComponent<{}, AppState> {
 			this.setState({
 				tickets: newTickets,
 				hidden: 0,
+			});
+		}
+	};
+
+	handleSizeChange = (size: string) => {
+		this.setState({
+			fontSize: size,
+		});
+	};
+
+	handlePageChange = (dir: String) => {
+		if (dir === 'left') {
+			this.setState({
+				page: this.state.page - 1,
+			});
+		}
+		if (dir === 'right') {
+			this.setState({
+				page: this.state.page + 1,
 			});
 		}
 	};
@@ -99,19 +132,61 @@ export class App extends React.PureComponent<{}, AppState> {
 		);
 	};
 
-	handleSizeChange = (size: string) => {
-		this.setState({
-			fontSize: size,
-		});
+	renderLeftPage = () => {
+		if (this.state.page === 1) {
+			return (
+				<button type='button' className='page-button' disabled>
+					{`<`}
+				</button>
+			);
+		} else {
+			return (
+				<button
+					type='button'
+					className='page-button'
+					onClick={() => {
+						this.handlePageChange('left');
+					}}
+				>
+					{`<`}
+				</button>
+			);
+		}
+	};
+
+	renderRightPage = () => {
+		if (this.state.tickets !== undefined && this.state.tickets.length === 0) {
+			return (
+				<button type='button' className='page-button' disabled>
+					{`>`}
+				</button>
+			);
+		} else {
+			return (
+				<button
+					type='button'
+					className='page-button'
+					onClick={() => {
+						this.handlePageChange('right');
+					}}
+				>
+					{`>`}
+				</button>
+			);
+		}
+	};
+
+	renderPage = () => {
+		return (
+			<div className='page'>
+				{this.renderLeftPage()}
+				{this.renderRightPage()}
+			</div>
+		);
 	};
 
 	renderTickets = (tickets: Ticket[]) => {
-		const filteredTickets = tickets.filter(
-			(t) =>
-				(t.title.toLowerCase() + t.content.toLowerCase()).includes(
-					this.state.search.toLowerCase()
-				) && !t.hide
-		);
+		const filteredTickets = tickets.filter((t) => !t.hide);
 
 		return (
 			<ul className='tickets'>
@@ -171,6 +246,7 @@ export class App extends React.PureComponent<{}, AppState> {
 					</div>
 				) : null}
 				{tickets ? this.renderTickets(tickets) : <h2>Loading..</h2>}
+				{this.renderPage()}
 			</main>
 		);
 	}
