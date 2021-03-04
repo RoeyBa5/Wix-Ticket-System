@@ -1,4 +1,4 @@
-import {Ticket} from '../client/src/api';
+import { Ticket } from '../client/src/api';
 
 const data = require('./data.json');
 

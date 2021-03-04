@@ -16,5 +16,8 @@
 	"license": "ISC",
 	"devDependencies": {
 		"lerna": "^3.13.1"
+	},
+	"dependencies": {
+		"react-show-more-text": "^1.4.6"
 	}
 }

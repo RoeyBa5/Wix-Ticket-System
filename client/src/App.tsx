@@ -2,6 +2,10 @@ import React from 'react';
 import './App.scss';
 import { createApiClient, Ticket } from './api';
 import { sizes } from './config';
+import Tickets from './components/Tickets';
+import Hidden from './components/Hidden';
+import PageCtrl from './components/PageCtrl';
+import FontSize from './components/FontSize';
 
 export type AppState = {
 	tickets?: Ticket[];
@@ -90,131 +94,6 @@ export class App extends React.PureComponent<{}, AppState> {
 		}
 	};
 
-	renderHidden = (hidden: number) => {
-		return (
-			<div className='hidden'>
-				({hidden} hidden tickets{' '}
-				<div className='restore' onClick={this.handleRestore}>
-					- restore
-				</div>
-				)
-			</div>
-		);
-	};
-
-	renderFontButton = (size: string) => {
-		if (size === this.state.fontSize) {
-			return <div className='change-size active'>{sizes.get(size)}</div>;
-		} else {
-			return (
-				<div
-					className='change-size passive'
-					onClick={() => {
-						this.handleSizeChange(size);
-					}}
-				>
-					{sizes.get(size)}
-				</div>
-			);
-		}
-	};
-
-	renderFontSize = () => {
-		return (
-			<div className='change-size'>
-				Choose Font Size:{` `}
-				{this.renderFontButton('sm')}
-				{' | '}
-				{this.renderFontButton('nr')}
-				{' | '}
-				{this.renderFontButton('lg')}
-			</div>
-		);
-	};
-
-	renderLeftPage = () => {
-		if (this.state.page === 1) {
-			return (
-				<button type='button' className='page-button' disabled>
-					{`<`}
-				</button>
-			);
-		} else {
-			return (
-				<button
-					type='button'
-					className='page-button'
-					onClick={() => {
-						this.handlePageChange('left');
-					}}
-				>
-					{`<`}
-				</button>
-			);
-		}
-	};
-
-	renderRightPage = () => {
-		if (this.state.tickets !== undefined && this.state.tickets.length === 0) {
-			return (
-				<button type='button' className='page-button' disabled>
-					{`>`}
-				</button>
-			);
-		} else {
-			return (
-				<button
-					type='button'
-					className='page-button'
-					onClick={() => {
-						this.handlePageChange('right');
-					}}
-				>
-					{`>`}
-				</button>
-			);
-		}
-	};
-
-	renderPage = () => {
-		return (
-			<div className='page'>
-				{this.renderLeftPage()}
-				{this.renderRightPage()}
-			</div>
-		);
-	};
-
-	renderTickets = (tickets: Ticket[]) => {
-		const filteredTickets = tickets.filter((t) => !t.hide);
-
-		return (
-			<ul className='tickets'>
-				{filteredTickets.map((ticket) => (
-					<li key={ticket.id} className={`ticket + ${this.state.fontSize}`}>
-						<div
-							className='hide'
-							onClick={() => {
-								const { tickets } = this.state;
-								this.handleHide(ticket.id);
-							}}
-						>
-							Hide
-						</div>
-						<h5 className='title'>{ticket.title}</h5>
-						<div className='meta-data'>{ticket.content}</div>
-						<footer>
-							<div className='meta-data'>
-								By {ticket.userEmail} |{' '}
-								{new Date(ticket.creationTime).toLocaleString()}
-							</div>
-						</footer>
-					</li>
-				))}
-			</ul>
-		);
-	};
-
 	onSearch = async (val: string, newPage?: number) => {
 		clearTimeout(this.searchDebounce);
 
@@ -226,12 +105,15 @@ export class App extends React.PureComponent<{}, AppState> {
 	};
 
 	render() {
-		const { tickets, hidden } = this.state;
+		const { tickets, hidden, page, fontSize } = this.state;
 
 		return (
 			<main>
 				<h1>Tickets List</h1>
-				<div>{this.renderFontSize()}</div>
+				<FontSize
+					fontSize={fontSize}
+					handleSizeChange={this.handleSizeChange}
+				/>
 				<header>
 					<input
 						type='search'
@@ -242,11 +124,27 @@ export class App extends React.PureComponent<{}, AppState> {
 				{tickets ? (
 					<div className='results'>
 						Showing {tickets.length} results{' '}
-						{hidden > 0 ? this.renderHidden(hidden) : ''}
+						{hidden > 0 ? (
+							<Hidden hidden={hidden} handleRestore={this.handleRestore} />
+						) : (
+							''
+						)}
 					</div>
 				) : null}
-				{tickets ? this.renderTickets(tickets) : <h2>Loading..</h2>}
-				{this.renderPage()}
+				{tickets ? (
+					<Tickets
+						handleHide={this.handleHide}
+						tickets={tickets}
+						fontSize={fontSize}
+					/>
+				) : (
+					<h2>Loading..</h2>
+				)}
+				<PageCtrl
+					page={page}
+					handlePageChange={this.handlePageChange}
+					tickets={tickets || []}
+				/>
 			</main>
 		);
 	}
