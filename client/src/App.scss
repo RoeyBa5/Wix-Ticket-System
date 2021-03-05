@@ -111,7 +111,7 @@ body {
 		padding: 0;
 
 		.ticket {
-			overflow: hidden;
+			overflow: visible;
 			height: auto;
 			width: calc(100% - 70px);
 			margin: 15px;
@@ -124,9 +124,21 @@ body {
 
 			.hide {
 				font-weight: 400;
-				text-align: right;
 				opacity: 0;
 				cursor: pointer;
+				display: inline-flex;
+				margin: 5px 8px;
+			}
+			.select {
+				font-weight: 400;
+				opacity: 0;
+				display: block;
+				text-align: center;
+				margin: 5px;
+			}
+
+			.box {
+				float: right;
 			}
 
 			&:hover {
@@ -137,9 +149,13 @@ body {
 				opacity: 1;
 				transition: opacity 1s;
 			}
+			&:hover .select {
+				opacity: 1;
+				transition: opacity 1s;
+			}
 
 			.title {
-				margin: 2px 0 15px 0;
+				margin: 10px 0 15px 0;
 				font-size: 130%;
 				font-weight: 400;
 				font-style: normal;

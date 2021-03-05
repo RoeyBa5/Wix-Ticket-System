@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.scss';
 import { createApiClient, Ticket } from './api';
-import { sizes } from './config';
 import Tickets from './components/Tickets';
 import Hidden from './components/Hidden';
 import PageCtrl from './components/PageCtrl';
@@ -13,6 +12,7 @@ export type AppState = {
 	hidden: number;
 	fontSize: string;
 	page: number;
+	cloned: number;
 };
 
 const api = createApiClient();
@@ -23,6 +23,7 @@ export class App extends React.PureComponent<{}, AppState> {
 		hidden: 0,
 		fontSize: 'nr',
 		page: 1,
+		cloned: 0,
 	};
 
 	searchDebounce: any = null;
@@ -36,7 +37,8 @@ export class App extends React.PureComponent<{}, AppState> {
 	async componentDidUpdate(prevProps: any, prevState: any) {
 		if (
 			prevState.search !== this.state.search ||
-			prevState.page !== this.state.page
+			prevState.page !== this.state.page ||
+			prevState.cloned !== this.state.cloned
 		) {
 			this.setState({
 				tickets: await api.getTickets(this.state.page, this.state.search),
@@ -94,6 +96,21 @@ export class App extends React.PureComponent<{}, AppState> {
 		}
 	};
 
+	handleClone = async (id: string) => {
+		console.log(this.state.tickets);
+		console.log(await api.cloneTicket(id));
+		this.setState({
+			cloned: this.state.cloned + 1,
+		});
+	};
+
+	handleStatus = async (id: string, status: string) => {
+		await api.updateStatus(id, status);
+		this.setState({
+			cloned: this.state.cloned + 1,
+		});
+	};
+
 	onSearch = async (val: string, newPage?: number) => {
 		clearTimeout(this.searchDebounce);
 
@@ -134,6 +151,8 @@ export class App extends React.PureComponent<{}, AppState> {
 				{tickets ? (
 					<Tickets
 						handleHide={this.handleHide}
+						handleClone={this.handleClone}
+						handleStatus={this.handleStatus}
 						tickets={tickets}
 						fontSize={fontSize}
 					/>

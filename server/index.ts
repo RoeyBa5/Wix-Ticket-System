@@ -2,12 +2,15 @@ import express from 'express';
 import bodyParser = require('body-parser');
 import { tempData } from './temp-data';
 import { serverAPIPort, APIPath } from '@fed-exam/config';
+import { v4 as uuidv4 } from 'uuid';
 
 console.log('starting server', { serverAPIPort, APIPath });
 
 const app = express();
 
 const PAGE_SIZE = 20;
+
+let localData = [...tempData];
 
 app.use(bodyParser.json());
 
@@ -48,7 +51,7 @@ app.get(APIPath, (req, res) => {
 		}
 	}
 
-	let paginatedData = tempData.filter(
+	let paginatedData = localData.filter(
 		(t) =>
 			(t.title.toLowerCase() + t.content.toLowerCase()).includes(
 				search.toString().toLowerCase()
@@ -67,12 +70,41 @@ app.get(APIPath, (req, res) => {
 						before[0].split('/')[1] - 1,
 						before[0].split('/')[0]
 					).getTime()) &&
-			(from === undefined || t.userEmail.toLowerCase() == from[0].toLowerCase())
+			(from === undefined ||
+				t.userEmail.toLowerCase() == from[0].toLowerCase()) &&
+			(t.status === undefined || t.status === 'opened')
 	);
 
 	paginatedData = paginatedData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
 	res.send(paginatedData);
+});
+
+app.post(APIPath, (req, res) => {
+	// @ts-ignore
+	const id: string = req.headers.id || '';
+	let tempTicket;
+	localData.forEach((ticket, index) => {
+		if (ticket.id === id) {
+			tempTicket = { ...ticket };
+			tempTicket.id = uuidv4();
+			localData.splice(index + 1, 0, tempTicket);
+		}
+	});
+
+	res.send('Item Cloned');
+});
+
+app.put(APIPath, (req, res) => {
+	// @ts-ignore
+	const id: string = req.headers.id || '';
+	const status: string = req.headers.status?.toString() || '';
+	localData.forEach((ticket) => {
+		if (ticket.id == id) {
+			ticket.status = status;
+		}
+	});
+	res.send('Item Status Updated');
 });
 
 app.listen(serverAPIPort);

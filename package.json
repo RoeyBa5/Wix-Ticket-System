@@ -18,6 +18,10 @@
 		"lerna": "^3.13.1"
 	},
 	"dependencies": {
-		"react-show-more-text": "^1.4.6"
+		"react-dropdown": "^1.9.2",
+		"react-dropdown-select": "^4.7.4",
+		"react-select": "^4.1.0",
+		"react-show-more-text": "^1.4.6",
+		"uuid": "^3.4.0"
 	}
 }
