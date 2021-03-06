@@ -7,8 +7,10 @@ interface props {
 	handleHide: Function;
 	handleClone: Function;
 	handleStatus: Function;
+	handleOwner: Function;
 	tickets: Ticket[];
 	fontSize: string;
+	owners: string[];
 }
 
 const executeOnClick = (isExpanded) => {
@@ -41,7 +43,7 @@ export default class Tickets extends Component<props> {
 							</div>
 							<div className='select'>
 								<Select
-									style={{ padding: '0' }}
+									style={{ 'text-align': 'center' }}
 									placeholder={
 										ticket.status === 'opened' || ticket.status === undefined
 											? 'Opened'
@@ -56,10 +58,28 @@ export default class Tickets extends Component<props> {
 									}}
 								/>
 							</div>
+							<div className='select'>
+								<Select
+									direction='ltr'
+									style={{ 'text-align': 'center' }}
+									placeholder={
+										ticket.owner === undefined ? 'Owner' : ticket.owner
+									}
+									options={this.props.owners.map((owner) =>
+										Object.fromEntries([
+											['value', owner],
+											['label', owner],
+										])
+									)}
+									onChange={(value) => {
+										this.props.handleOwner(ticket.id, value[0].value);
+									}}
+								/>
+							</div>
 						</div>
 
 						<h5 className='title'>{ticket.title}</h5>
-						<div className='meta-data'>
+						<div className='meta-data content'>
 							<ShowMoreText
 								lines={3}
 								more='See more'

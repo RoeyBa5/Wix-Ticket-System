@@ -139,6 +139,7 @@ body {
 
 			.box {
 				float: right;
+				width: calc(10%);
 			}
 
 			&:hover {
@@ -160,6 +161,9 @@ body {
 				font-weight: 400;
 				font-style: normal;
 				color: var(--title-color);
+			}
+			.content {
+				width: calc(88%);
 			}
 
 			footer {

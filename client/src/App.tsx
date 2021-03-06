@@ -13,6 +13,7 @@ export type AppState = {
 	fontSize: string;
 	page: number;
 	cloned: number;
+	owners: string[];
 };
 
 const api = createApiClient();
@@ -24,6 +25,7 @@ export class App extends React.PureComponent<{}, AppState> {
 		fontSize: 'nr',
 		page: 1,
 		cloned: 0,
+		owners: [],
 	};
 
 	searchDebounce: any = null;
@@ -31,6 +33,7 @@ export class App extends React.PureComponent<{}, AppState> {
 	async componentDidMount() {
 		this.setState({
 			tickets: await api.getTickets(this.state.page, this.state.search),
+			owners: await api.getOwners(),
 		});
 	}
 
@@ -38,43 +41,27 @@ export class App extends React.PureComponent<{}, AppState> {
 		if (
 			prevState.search !== this.state.search ||
 			prevState.page !== this.state.page ||
-			prevState.cloned !== this.state.cloned
+			prevState.cloned !== this.state.cloned ||
+			prevState.hidden !== this.state.hidden
 		) {
 			this.setState({
 				tickets: await api.getTickets(this.state.page, this.state.search),
-				hidden: 0,
 			});
 		}
 	}
 
-	handleHide = (id: string) => {
-		if (this.state.tickets !== undefined) {
-			let plus = 0;
-			const newTickets = this.state.tickets.map((ticket) => {
-				if (ticket.id === id) {
-					ticket.hide ? (plus = -1) : (plus = 1);
-					ticket.hide = !ticket.hide;
-				}
-				return ticket;
-			});
-			this.setState({
-				tickets: newTickets,
-				hidden: this.state.hidden + plus,
-			});
-		}
+	handleHide = async (id: string) => {
+		await api.hideTicket(id);
+		this.setState({
+			hidden: this.state.hidden + 1,
+		});
 	};
 
-	handleRestore = () => {
-		if (this.state.tickets !== undefined) {
-			const newTickets = this.state.tickets.map((ticket) => {
-				ticket.hide = false;
-				return ticket;
-			});
-			this.setState({
-				tickets: newTickets,
-				hidden: 0,
-			});
-		}
+	handleRestore = async () => {
+		await api.showTickets();
+		this.setState({
+			hidden: 0,
+		});
 	};
 
 	handleSizeChange = (size: string) => {
@@ -111,6 +98,13 @@ export class App extends React.PureComponent<{}, AppState> {
 		});
 	};
 
+	handleOwner = async (id: string, owner: string) => {
+		await api.updateOwner(id, owner);
+		this.setState({
+			cloned: this.state.cloned + 1,
+		});
+	};
+
 	onSearch = async (val: string, newPage?: number) => {
 		clearTimeout(this.searchDebounce);
 
@@ -122,7 +116,7 @@ export class App extends React.PureComponent<{}, AppState> {
 	};
 
 	render() {
-		const { tickets, hidden, page, fontSize } = this.state;
+		const { tickets, hidden, page, fontSize, owners } = this.state;
 
 		return (
 			<main>
@@ -153,8 +147,10 @@ export class App extends React.PureComponent<{}, AppState> {
 						handleHide={this.handleHide}
 						handleClone={this.handleClone}
 						handleStatus={this.handleStatus}
+						handleOwner={this.handleOwner}
 						tickets={tickets}
 						fontSize={fontSize}
+						owners={owners}
 					/>
 				) : (
 					<h2>Loading..</h2>

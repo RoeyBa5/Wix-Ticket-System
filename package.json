@@ -18,6 +18,8 @@
 		"lerna": "^3.13.1"
 	},
 	"dependencies": {
+		"bootstrap": "^4.6.0",
+		"elasticsearch": "^16.7.2",
 		"react-dropdown": "^1.9.2",
 		"react-dropdown-select": "^4.7.4",
 		"react-select": "^4.1.0",
