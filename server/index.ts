@@ -1,15 +1,19 @@
 import express from 'express';
 import bodyParser = require('body-parser');
 import { tempData, owners } from './temp-data';
-import { serverAPIPort, APIPath } from '@fed-exam/config';
+import { serverAPIPort, APIPath, APIRootPath } from '@fed-exam/config';
 import { v4 as uuidv4 } from 'uuid';
-const elasticsearch = require('elasticsearch');
+import connect from './config/connect';
+import Post from './models/Post';
+const config = require('config');
+const db: string = config.get('mongoURI');
 
 console.log('starting server', { serverAPIPort, APIPath });
 
 const app = express();
+connect(db);
 
-const PAGE_SIZE = 20;
+export const PAGE_SIZE = 20;
 
 let localData = [...tempData];
 
@@ -22,66 +26,75 @@ app.use((_, res, next) => {
 	next();
 });
 
-const esClient = new elasticsearch.Client({
-	host: '127.0.0.1:9200',
-	log: 'error',
-});
+app.get('/', (req, res) => res.send('API running'));
 
-app.get(APIPath, (req, res) => {
+app.get(APIPath, async (req, res) => {
 	// @ts-ignore
 	const page: number = req.query.page || 1;
-	let search = (req.query.search || '').toString();
-
+	let search: string = (req.query.search || '').toString();
+	let superSearch = req.query.superSearch;
+	let superSearchBool;
+	superSearch === 'true' ? (superSearchBool = true) : (superSearchBool = false);
+	let paginatedData;
 	let after: any = undefined;
 	let before: any = undefined;
 	let from: any = undefined;
 
-	if (search.includes('after:')) {
-		after = search.match(/(?<=after:)([0-9]|[/])*/);
-		if (after !== null) {
-			search = search.replace(`after:${after[0]}`, '');
+	if (superSearchBool && search.length > 0) {
+		let superArr = await Post.find({
+			$or: [
+				{ title: { $regex: `.*${search}.*`, $options: 'i' } },
+				{ content: { $regex: `.*${search}.*`, $options: 'i' } },
+			],
+		});
+		return res.send(superArr.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE));
+	} else {
+		if (search.includes('after:')) {
+			after = search.match(/(?<=after:)([0-9]|[/])*/);
+			if (after !== null) {
+				search = search.replace(`after:${after[0]}`, '');
+			}
 		}
-	}
 
-	if (search.includes('before:')) {
-		before = search.match(/(?<=before:)([0-9]|[/])*/);
-		if (before !== null) {
-			search = search.replace(`before:${before[0]}`, '');
+		if (search.includes('before:')) {
+			before = search.match(/(?<=before:)([0-9]|[/])*/);
+			if (before !== null) {
+				search = search.replace(`before:${before[0]}`, '');
+			}
 		}
-	}
 
-	if (search.includes('from:')) {
-		from = search.match(/(?<=from:)([a-z]|[A-Z]|[0-9]|[@.])*/);
-		if (from !== null) {
-			search = search.replace(`from:${from[0]}`, '');
+		if (search.includes('from:')) {
+			from = search.match(/(?<=from:)([a-z]|[A-Z]|[0-9]|[@.])*/);
+			if (from !== null) {
+				search = search.replace(`from:${from[0]}`, '');
+			}
 		}
+
+		paginatedData = localData.filter(
+			(t) =>
+				(t.title.toLowerCase() + t.content.toLowerCase()).includes(
+					search.toString().toLowerCase()
+				) &&
+				(after === undefined ||
+					t.creationTime >=
+						new Date(
+							after[0].split('/')[2],
+							after[0].split('/')[1] - 1,
+							after[0].split('/')[0]
+						).getTime()) &&
+				(before === undefined ||
+					t.creationTime <=
+						new Date(
+							before[0].split('/')[2],
+							before[0].split('/')[1] - 1,
+							before[0].split('/')[0]
+						).getTime()) &&
+				(from === undefined ||
+					t.userEmail.toLowerCase() == from[0].toLowerCase()) &&
+				(t.status === undefined || t.status === 'opened') &&
+				!t.hide
+		);
 	}
-
-	let paginatedData = localData.filter(
-		(t) =>
-			(t.title.toLowerCase() + t.content.toLowerCase()).includes(
-				search.toString().toLowerCase()
-			) &&
-			(after === undefined ||
-				t.creationTime >=
-					new Date(
-						after[0].split('/')[2],
-						after[0].split('/')[1] - 1,
-						after[0].split('/')[0]
-					).getTime()) &&
-			(before === undefined ||
-				t.creationTime <=
-					new Date(
-						before[0].split('/')[2],
-						before[0].split('/')[1] - 1,
-						before[0].split('/')[0]
-					).getTime()) &&
-			(from === undefined ||
-				t.userEmail.toLowerCase() == from[0].toLowerCase()) &&
-			(t.status === undefined || t.status === 'opened') &&
-			!t.hide
-	);
-
 	paginatedData = paginatedData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
 	res.send(paginatedData);

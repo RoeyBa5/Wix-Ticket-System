@@ -14,7 +14,11 @@ export type Ticket = {
 };
 
 export type ApiClient = {
-	getTickets: (page: number, search: string) => Promise<Ticket[]>;
+	getTickets: (
+		page: number,
+		search: string,
+		superSearch: boolean
+	) => Promise<Ticket[]>;
 	getOwners: () => Promise<string[]>;
 	cloneTicket: (id: string) => Promise<string>;
 	updateStatus: (id: string, status: string) => Promise<string>;
@@ -25,9 +29,11 @@ export type ApiClient = {
 
 export const createApiClient = (): ApiClient => {
 	return {
-		getTickets: (page: number, search: string) => {
+		getTickets: (page: number, search: string, superSearch: boolean) => {
 			return axios
-				.get(APIRootPath, { params: { page: page, search: search } })
+				.get(APIRootPath, {
+					params: { page: page, search: search, superSearch: superSearch },
+				})
 				.then((res) => res.data);
 		},
 		getOwners: () => {

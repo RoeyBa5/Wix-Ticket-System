@@ -69,6 +69,19 @@ body {
 		font-size: 20px;
 	}
 
+	.super-search {
+		display: inline-block;
+		width: 150x;
+		flex-shrink: 0;
+		border-radius: 6px;
+		background-color: #fff;
+		box-shadow: 0 2px 6px 1px #e1e5e8;
+		margin-left: 20px;
+		border: 1px solid #fff;
+		position: relative;
+		font-size: 15px;
+	}
+
 	header {
 		width: 100%;
 		flex-shrink: 0;

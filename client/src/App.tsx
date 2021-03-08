@@ -5,6 +5,7 @@ import Tickets from './components/Tickets';
 import Hidden from './components/Hidden';
 import PageCtrl from './components/PageCtrl';
 import FontSize from './components/FontSize';
+import SuperSearch from './components/SuperSearch';
 
 export type AppState = {
 	tickets?: Ticket[];
@@ -14,6 +15,7 @@ export type AppState = {
 	page: number;
 	cloned: number;
 	owners: string[];
+	superSearch: boolean;
 };
 
 const api = createApiClient();
@@ -26,13 +28,18 @@ export class App extends React.PureComponent<{}, AppState> {
 		page: 1,
 		cloned: 0,
 		owners: [],
+		superSearch: false,
 	};
 
 	searchDebounce: any = null;
 
 	async componentDidMount() {
 		this.setState({
-			tickets: await api.getTickets(this.state.page, this.state.search),
+			tickets: await api.getTickets(
+				this.state.page,
+				this.state.search,
+				this.state.superSearch
+			),
 			owners: await api.getOwners(),
 		});
 	}
@@ -45,7 +52,11 @@ export class App extends React.PureComponent<{}, AppState> {
 			prevState.hidden !== this.state.hidden
 		) {
 			this.setState({
-				tickets: await api.getTickets(this.state.page, this.state.search),
+				tickets: await api.getTickets(
+					this.state.page,
+					this.state.search,
+					this.state.superSearch
+				),
 			});
 		}
 	}
@@ -62,6 +73,14 @@ export class App extends React.PureComponent<{}, AppState> {
 		this.setState({
 			hidden: 0,
 		});
+	};
+
+	handleSearch = (value) => {
+		this.setState({
+			superSearch: value,
+			cloned: this.state.cloned + 11,
+		});
+		console.log(this.state.superSearch);
 	};
 
 	handleSizeChange = (size: string) => {
@@ -125,6 +144,7 @@ export class App extends React.PureComponent<{}, AppState> {
 					fontSize={fontSize}
 					handleSizeChange={this.handleSizeChange}
 				/>
+				<SuperSearch handleSearch={this.handleSearch} />
 				<header>
 					<input
 						type='search'
