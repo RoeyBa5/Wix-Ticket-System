@@ -1,3 +1,3 @@
 {
-	"mongoURI": "mongodb+srv://roey123:roey123@cluster0.zgsmq.gcp.mongodb.net/<dbname>?retryWrites=true&w=majority"
+	"mongoURI": "mongodb+srv://[user]:[pass]@cluster0.zgsmq.gcp.mongodb.net/<dbname>?retryWrites=true&w=majority"
 }
